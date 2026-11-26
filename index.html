@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ギター練習ルーム</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ギター練習">
+<meta name="theme-color" content="#2f9e57">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#121514);--ink:light-dark(#14201a,#eef3ef);--sub:light-dark(#56635c,#a7b3ad);--line:light-dark(#e3e8e5,#2a302d);--card:light-dark(#f2f6f3,#1d2320);--m:#2f9e57;--yel:#ffd23f}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "M PLUS Rounded 1c",system-ui,sans-serif}
+.vid{position:sticky;top:0;z-index:5;background:#000;padding-top:env(safe-area-inset-top)}
+.vbox{position:relative;aspect-ratio:16/9;max-height:56vh;margin:0 auto;max-width:calc(56vh*16/9)}
+.vbox>div,.vbox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.empty{display:grid;place-content:center;gap:10px;padding:16px;color:#fff;text-align:center;background:var(--m)}
+.empty input{font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:0;width:min(420px,80vw)}
+.vbar{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;background:#111}
+.vbar button{flex:none;min-height:40px;background:#2a2a2a;color:#fff;font-size:14px;padding:0 12px}
+.vbar button[aria-pressed=true]{background:var(--yel);color:#14201a}
+.ttl{padding:12px 16px 0;max-width:640px;margin:0 auto}
+.ttl b{display:inline-block;background:var(--m);color:#fff;border-radius:999px;padding:2px 12px;font-size:14px;margin-right:6px}
+.ttl span{font-weight:800}
+main{max-width:640px;margin:0 auto;padding:12px 16px calc(env(safe-area-inset-bottom) + 28px)}
+button{font:inherit;color:inherit;border:0;border-radius:12px;min-height:46px;padding:0 14px;background:var(--card);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0 16px}
+.tabs button{font-weight:800;font-size:15px;white-space:nowrap;padding:0 6px}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.pane{display:none}.pane.on{display:block}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.row button[aria-pressed=true]{background:var(--m);color:#fff}
+.big{background:var(--m);color:#fff;font-weight:800;min-width:140px;min-height:52px}
+.big.on{background:var(--card);color:var(--ink)}
+/* timer */
+.clock{position:relative;width:min(240px,62vw);aspect-ratio:1;margin:0 auto}
+.clock svg{width:100%;height:100%}
+.clock .t{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+.clock .t b{font-size:52px;font-weight:800;color:#14201a;font-variant-numeric:tabular-nums;line-height:1}
+.clock .t small{color:#56635c;font-size:13px;margin-top:4px}
+.center{justify-content:center}
+/* metronome */
+.bpm{font-size:72px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;text-align:center}
+.bpm small{font-size:16px;color:var(--sub);margin-left:4px}
+input[type=range]{width:100%;accent-color:var(--m);height:40px}
+.dots{display:flex;gap:12px;justify-content:center;margin:12px 0}
+.dots i{width:24px;height:24px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--m)}.dots i.on.a{background:var(--yel)}
+/* tuner */
+.gauge svg{width:100%;max-width:420px;display:block;margin:0 auto}
+.note{text-align:center;margin-top:-6px}
+.note b{display:block;font-size:72px;line-height:1;font-weight:800}
+.note b.ok{color:var(--m)}
+.note small{display:block;color:var(--sub);font-size:15px;min-height:3em;margin-top:6px}
+#needle{transition:transform .12s ease-out}
+.modes{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.modes button,.ref button{padding:0;font-weight:800;display:grid;place-content:center;line-height:1.1}
+.modes button small,.ref button small{font-weight:500;font-size:11px;opacity:.75}
+.modes button[aria-pressed=true]{background:var(--m);color:#fff}
+.ref{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-top:6px}
+.ref button.ring{outline:3px solid var(--m)}
+.msg{background:light-dark(#fff6d6,#3a3214);border-radius:12px;padding:10px 14px;font-size:14px}
+.msg:empty{display:none}
+h3{font-size:14px;color:var(--sub);font-weight:500;margin:18px 0 0}
+.hint{font-size:13px;color:var(--sub);margin-top:22px}
+@media(prefers-reduced-motion:reduce){#needle{transition:none}}
+</style>
+</head>
+<body>
+<div class="vid">
+ <div class="vbox" id="vbox"><div class="empty" id="empty"><div>YouTubeのURLを貼ると、ここで再生できます</div><form id="uform"><input id="uin" type="url" inputmode="url" placeholder="https://youtu.be/…" aria-label="YouTubeのURL"></form></div></div>
+ <div class="vbar" id="vbar" hidden>
+  <button data-sk="-10">⟲ 10秒</button><button data-sk="-5">⟲ 5秒</button>
+  <button data-r="0.5">0.5倍</button><button data-r="0.75">0.75倍</button><button data-r="1" aria-pressed="true">1倍</button>
+  <button id="loop" aria-pressed="false">くり返し</button>
+ </div>
+</div>
+<div class="ttl" id="ttl" hidden><b id="tday"></b><span id="ttitle"></span></div>
+<main>
+ <div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-p="pt">タイマー</button>
+  <button role="tab" aria-selected="false" data-p="pm">メトロノーム</button>
+  <button role="tab" aria-selected="false" data-p="pu">チューナー</button>
+ </div>
+ <section class="pane on" id="pt">
+  <div class="clock" id="clock"><svg viewBox="0 0 200 200" id="face" aria-hidden="true"></svg><div class="t"><b id="tleft">5:00</b><small id="tlbl">スタートで開始</small></div></div>
+  <div class="row center"><button class="big" id="tgo">スタート</button><button id="treset">リセット</button></div>
+  <div class="row center" id="tlen"></div>
+ </section>
+ <section class="pane" id="pm">
+  <div class="bpm"><span id="bpmv">80</span><small>BPM</small></div>
+  <input type="range" id="bpm" min="40" max="208" value="80" aria-label="テンポ">
+  <div class="row center" id="bd"><button data-d="-5">−5</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="5">+5</button><button id="tap">タップ</button></div>
+  <div class="dots" id="dots"></div>
+  <div class="row center" id="sub"></div>
+  <div class="row center" id="meter"></div>
+  <div class="row center"><button class="big" id="mgo">スタート</button></div>
+ </section>
+ <section class="pane" id="pu">
+  <div class="gauge"><svg id="gauge" viewBox="0 0 300 165" aria-hidden="true"></svg></div>
+  <div class="note"><b id="gn">–</b><small id="gc">「チューナーを起動」を押して弦をはじいてください</small></div>
+  <div class="modes" id="modes" aria-label="合わせる弦"></div>
+  <div class="row"><button class="big" id="go" style="flex:1">チューナーを起動</button></div>
+  <p class="msg" id="msg"></p>
+  <h3>基準音</h3>
+  <div class="ref" id="ref"></div>
+ </section>
+ <p class="hint">マナーモード中は音が鳴りません。ホーム画面に置くには、Safariの共有ボタン →「ホーム画面に追加」。</p>
+</main>
+<script>
+{
+const $=id=>document.getElementById(id);
+let AC=null;const ac=()=>{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC};
+const store={get(k,d){try{const v=localStorage.getItem('gp_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('gp_'+k,JSON.stringify(v))}catch(e){}}};
+/* ---- video ---- */
+let player=null,vid='',looping=false;
+function parseHash(){const p=new URLSearchParams(location.hash.slice(1));return{v:(p.get('v')||'').replace(/[^\w-]/g,'').slice(0,20),t:p.get('t')||'',d:p.get('d')||''}}
+function idFrom(u){const m=String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:'')}
+function setTitle(h){if(h.t||h.d){$('ttl').hidden=false;$('tday').textContent=h.d?(/^\d+$/.test(h.d)?h.d+'日目':h.d):'';$('tday').hidden=!h.d;$('ttitle').textContent=h.t}else $('ttl').hidden=true}
+function load(id){vid=id;if(!id)return;$('vbar').hidden=false;
+ if(player&&player.loadVideoById){player.cueVideoById(id);return}
+ $('vbox').innerHTML='<div id="yt"></div>';
+ const mk=()=>{player=new YT.Player('yt',{host:'https://www.youtube-nocookie.com',videoId:id,playerVars:{playsinline:1,rel:0,modestbranding:1},events:{onStateChange:e=>{if(e.data===0&&looping){player.seekTo(0);player.playVideo()}}}})};
+ if(window.YT&&YT.Player)mk();else{window.onYouTubeIframeAPIReady=mk;const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}}
+$('uform').onsubmit=e=>{e.preventDefault();const id=idFrom($('uin').value.trim());if(id)location.hash='v='+id};
+$('vbar').onclick=e=>{const b=e.target.closest('button');if(!b||!player||!player.getCurrentTime)return;
+ if(b.dataset.sk){player.seekTo(Math.max(0,player.getCurrentTime()+ +b.dataset.sk),true)}
+ else if(b.dataset.r){player.setPlaybackRate(+b.dataset.r);document.querySelectorAll('[data-r]').forEach(x=>x.setAttribute('aria-pressed',x===b))}
+ else if(b.id==='loop'){looping=!looping;b.setAttribute('aria-pressed',looping)}};
+function route(){const h=parseHash();setTitle(h);if(h.v&&h.v!==vid)load(h.v)}
+window.addEventListener('hashchange',route);
+/* ---- tabs ---- */
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('on',x.id===b.dataset.p))};
+/* ---- timer ---- */
+let len=store.get('len',5),tRun=false,tLeft=len*60,tLast=0,tH=0;
+function chime(){try{const c=ac(),t=c.currentTime;[659.25,783.99,1046.5].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.12);g.gain.linearRampToValueAtTime(.25,t+i*.12+.01);g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.9);o.connect(g).connect(c.destination);o.start(t+i*.12);o.stop(t+i*.12+1)})}catch(e){}}
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function drawFace(){const tot=len*60,p=Math.min(1,1-tLeft/tot),a=p*2*Math.PI,x=100+88*Math.sin(a),y=100-88*Math.cos(a);
+ let w='';if(p>=.9999)w='<circle cx="100" cy="100" r="88" fill="#ffd23f"/>';else if(p>0)w='<path d="M100 100 L100 12 A88 88 0 '+(p>.5?1:0)+' 1 '+x.toFixed(2)+' '+y.toFixed(2)+' Z" fill="#ffd23f"/>';
+ let t='';for(let i=0;i<12;i++){const r=i*Math.PI/6,l=i%3?6:11;t+='<line x1="'+(100+92*Math.sin(r)).toFixed(1)+'" y1="'+(100-92*Math.cos(r)).toFixed(1)+'" x2="'+(100+(92-l)*Math.sin(r)).toFixed(1)+'" y2="'+(100-(92-l)*Math.cos(r)).toFixed(1)+'" stroke="#14201a" stroke-width="'+(i%3?2:3.5)+'" stroke-linecap="round"/>'}
+ $('face').innerHTML='<circle cx="100" cy="100" r="98" fill="#fff" stroke="var(--line)" stroke-width="2"/>'+w+t;
+ $('tleft').textContent=fmt(Math.ceil(tLeft));$('tlbl').textContent=tRun?'練習中':(tLeft<=0?'おつかれさま！':(tLeft<tot?'一時停止中':'スタートで開始'));
+ $('tgo').textContent=tRun?'一時停止':(tLeft<=0?'もう一度':(tLeft<tot?'再開':'スタート'))}
+function tick(){const n=performance.now();tLeft-=(n-tLast)/1000;tLast=n;if(tLeft<=0){tLeft=0;tRun=false;clearInterval(tH);chime()}drawFace()}
+$('tgo').onclick=()=>{ac();if(tRun){tRun=false;clearInterval(tH)}else{if(tLeft<=0)tLeft=len*60;tRun=true;tLast=performance.now();tH=setInterval(tick,250)}drawFace()};
+$('treset').onclick=()=>{tRun=false;clearInterval(tH);tLeft=len*60;drawFace()};
+function renderLen(){$('tlen').innerHTML=[5,10,15].map(n=>'<button aria-pressed="'+(len===n)+'" data-n="'+n+'">'+n+'分</button>').join('')}
+$('tlen').onclick=e=>{const b=e.target.closest('button');if(!b||tRun)return;len=+b.dataset.n;store.set('len',len);tLeft=len*60;renderLen();drawFace()};
+/* ---- metronome ---- */
+let bpm=store.get('bpm',80),beats=4,subd=1,mOn=false,nextT=0,step=0,mH=0;const SUB=[[1,'4分'],[2,'8分'],[3,'シャッフル'],[4,'16分']];
+function renderMetro(){$('bpmv').textContent=bpm;$('bpm').value=bpm;
+ $('sub').innerHTML=SUB.map(s=>'<button aria-pressed="'+(subd===s[0])+'" data-s="'+s[0]+'">'+s[1]+'</button>').join('');
+ $('meter').innerHTML=[2,3,4].map(n=>'<button aria-pressed="'+(beats===n)+'" data-m="'+n+'">'+n+'拍子</button>').join('');
+ $('dots').innerHTML=Array.from({length:beats},(_,i)=>'<i class="'+(i?'':'a')+'"></i>').join('');$('mgo').textContent=mOn?'ストップ':'スタート';$('mgo').classList.toggle('on',mOn)}
+function setBpm(v){bpm=Math.max(40,Math.min(208,Math.round(v)));$('bpmv').textContent=bpm;$('bpm').value=bpm;store.set('bpm',bpm)}
+$('bpm').oninput=e=>setBpm(+e.target.value);
+$('bd').onclick=e=>{const b=e.target.closest('button[data-d]');if(b)setBpm(bpm+ +b.dataset.d)};
+let taps=[];$('tap').onclick=()=>{const n=performance.now();taps=taps.filter(t=>n-t<2500);taps.push(n);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};
+$('sub').onclick=e=>{const b=e.target.closest('button');if(b){subd=+b.dataset.s;renderMetro()}};
+$('meter').onclick=e=>{const b=e.target.closest('button');if(b){beats=+b.dataset.m;step=0;renderMetro()}};
+function click(t,lv){const c=AC,o=c.createOscillator(),g=c.createGain();o.frequency.value=lv===2?1760:lv===1?1100:820;g.gain.setValueAtTime(lv?.5:.18,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.06)}
+function sched(){const per=subd===3?3:subd;while(nextT<AC.currentTime+.12){const beat=Math.floor(step/per)%beats,sb=step%per;
+ if(!(subd===3&&sb===1)){click(nextT,sb?0:(beat?1:2));if(!sb){const bi=beat,dl=Math.max(0,(nextT-AC.currentTime)*1000);setTimeout(()=>{if(mOn)document.querySelectorAll('#dots i').forEach((x,i)=>x.classList.toggle('on',i===bi))},dl)}}
+ nextT+=60/bpm/per;step++}}
+$('mgo').onclick=()=>{ac();mOn=!mOn;if(mOn){step=0;nextT=AC.currentTime+.06;mH=setInterval(sched,25)}else{clearInterval(mH);document.querySelectorAll('#dots i').forEach(x=>x.classList.remove('on'))}renderMetro()};
+/* ---- tuner ---- */
+const STR=[[6,'E',82.41],[5,'A',110],[4,'D',146.83],[3,'G',196],[2,'B',246.94],[1,'E',329.63]];
+const NN=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+let mode=0,stream=null,an=null,buf=null,raf=0,hist=[],last=0;
+(function(){let g='<path d="M30 150 A120 120 0 0 1 270 150" fill="none" stroke="var(--line)" stroke-width="14" stroke-linecap="round"/>';
+ const p=t=>[150+120*Math.sin(t*Math.PI/180),150-120*Math.cos(t*Math.PI/180)];const[a,b]=p(-8),[c,d]=p(8);
+ g+='<path d="M'+a.toFixed(1)+' '+b.toFixed(1)+' A120 120 0 0 1 '+c.toFixed(1)+' '+d.toFixed(1)+'" fill="none" stroke="var(--m)" stroke-width="14"/>';
+ for(let k=-50;k<=50;k+=10){const t=k*1.6*Math.PI/180,l=k%50?8:14;g+='<line x1="'+(150+100*Math.sin(t)).toFixed(1)+'" y1="'+(150-100*Math.cos(t)).toFixed(1)+'" x2="'+(150+(100-l)*Math.sin(t)).toFixed(1)+'" y2="'+(150-(100-l)*Math.cos(t)).toFixed(1)+'" stroke="currentColor" stroke-opacity=".5" stroke-width="2"/>'}
+ g+='<text x="40" y="162" font-size="13" fill="currentColor" opacity=".6">低い</text><text x="260" y="162" font-size="13" text-anchor="end" fill="currentColor" opacity=".6">高い</text>';
+ g+='<g id="needle" style="transform-origin:150px 150px"><line x1="150" y1="150" x2="150" y2="40" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></g><circle cx="150" cy="150" r="9" fill="var(--yel)" stroke="currentColor" stroke-width="2"/>';
+ $('gauge').innerHTML=g})();
+function renderModes(){$('modes').innerHTML='<button data-t="0" aria-pressed="'+(mode===0)+'">自動</button>'+STR.map(x=>'<button data-t="'+x[0]+'" aria-pressed="'+(mode===x[0])+'">'+x[1]+'<small>'+x[0]+'弦</small></button>').join('')}
+$('modes').onclick=e=>{const b=e.target.closest('button');if(!b)return;mode=+b.dataset.t;renderModes();hist=[]};
+$('ref').innerHTML=STR.map(x=>'<button data-f="'+x[2]+'">'+x[1]+'<small>'+x[0]+'弦</small></button>').join('');
+function pluck(f){const c=ac(),t=c.currentTime,g=c.createGain(),lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(f*8,t);lp.frequency.exponentialRampToValueAtTime(f*2,t+1.5);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+2.8);
+ [[1,'sawtooth',.5],[2,'triangle',.3],[1.003,'sawtooth',.3]].forEach(h=>{const o=c.createOscillator(),og=c.createGain();o.type=h[1];o.frequency.value=f*h[0];og.gain.value=h[2];o.connect(og).connect(lp);o.start(t);o.stop(t+3)});lp.connect(g).connect(c.destination)}
+$('ref').onclick=e=>{const b=e.target.closest('button');if(b)pluck(+b.dataset.f)};
+function yin(b,sr){let rms=0;for(let i=0;i<b.length;i++)rms+=b[i]*b[i];if(Math.sqrt(rms/b.length)<.006)return -1;
+ const minT=Math.floor(sr/1100),maxT=Math.min(Math.floor(sr/60),b.length>>1),W=b.length-maxT,d=new Float32Array(maxT+1);
+ for(let t=1;t<=maxT;t++){let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}d[t]=s}
+ let run=0,tau=-1;for(let t=1;t<=maxT;t++){run+=d[t];d[t]=run?d[t]*t/run:1}
+ for(let t=minT;t<=maxT;t++){if(d[t]<.15){while(t+1<=maxT&&d[t+1]<d[t])t++;tau=t;break}}
+ if(tau<0)return -1;const a=d[tau-1]||d[tau],c=d[tau+1]||d[tau],den=a+c-2*d[tau],off=den?(a-c)/(2*den):0;return sr/(tau+off)}
+function ring(n){document.querySelectorAll('#ref button').forEach((b,i)=>b.classList.toggle('ring',STR[i][0]===n))}
+function show(f){const nb=$('gn'),gc=$('gc');
+ if(f<=0){nb.textContent='–';nb.className='';gc.textContent=stream?'弦をはじいてください':'「チューナーを起動」を押して弦をはじいてください';$('needle').style.transform='rotate(0deg)';ring(0);return}
+ let tgt,label;if(mode){const s=STR.find(x=>x[0]===mode);tgt=s[2];label=s[1]}else{const m=Math.round(12*Math.log2(f/440))+69;tgt=440*2**((m-69)/12);label=NN[m%12]}
+ const c=1200*Math.log2(f/tgt),ok=Math.abs(c)<5;nb.textContent=label;nb.className=ok?'ok':'';
+ $('needle').style.transform='rotate('+(Math.max(-50,Math.min(50,c))*1.6)+'deg)';
+ const sm=STR.find(x=>Math.abs(1200*Math.log2(f/x[2]))<50);ring(sm?sm[0]:0);
+ gc.textContent=(ok?'ぴったり！':(c<0?'低い → ペグを締めて音を上げる':'高い → ペグをゆるめて音を下げる'))+'（'+(c>0?'+':'')+Math.round(c)+'セント・'+f.toFixed(1)+'Hz）'}
+function loop(){raf=requestAnimationFrame(loop);if(!an)return;an.getFloatTimeDomainData(buf);const f=yin(buf,AC.sampleRate),n=performance.now();
+ if(f>0){hist.push(f);if(hist.length>5)hist.shift();const s=[...hist].sort((a,b)=>a-b);show(s[s.length>>1]);last=n}else if(n-last>1500){hist=[];show(-1)}}
+function stop(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;an=null;$('go').textContent='チューナーを起動';$('go').classList.remove('on');show(-1)}
+$('go').onclick=async()=>{if(stream)return stop();const c=ac();$('msg').textContent='';
+ try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  const src=c.createMediaStreamSource(stream);an=c.createAnalyser();an.fftSize=4096;buf=new Float32Array(4096);src.connect(an);
+  $('go').textContent='チューナーを止める';$('go').classList.add('on');hist=[];show(-1);loop()}
+ catch(e){stream=null;$('msg').textContent='マイクが使えませんでした。iPhoneは「設定」→「Safari」→「マイク」を「確認」か「許可」にして、もう一度押してください。'}};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&stream)stop()});
+renderLen();drawFace();renderMetro();renderModes();route();
+}
+</script>
+</body>
+</html>
